@@ -46,18 +46,28 @@
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 25px;
+    gap: 12px;
     justify-self: end;
 }
 
+/* Botão secundário (contorno) ao lado do "Agendar Avaliação" */
 .header-actions .link-sistema {
-    color: var(--dark-blue-text);
-    opacity: 0.8;
+    color: var(--purple-main);
+    border: 1px solid var(--purple-main);
+    border-radius: 2rem;
+    padding: 11px 22px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    white-space: nowrap;
     text-decoration: none;
+    transition: all 0.3s ease;
 }
 
 .header-actions .link-sistema:hover {
-    color: var(--purple-main);
+    color: var(--white);
+    background-color: var(--purple-main);
+    transform: translateY(-2px);
+    text-decoration: none;
 }
 
 .menu-icon {

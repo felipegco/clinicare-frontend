@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll'
 import Header from "./components/sections/Header/Header.jsx";
 import BotaoRoxo from "./components/ui/BotaoRoxo/BotaoRoxo.jsx";
@@ -8,6 +8,10 @@ import Especialistas from "./components/sections/Especialistas/Especialistas.jsx
 import Contato from "./components/sections/Contato/Contato.jsx";
 import Footer from "./components/sections/Footer/Footer.jsx";
 import Login from "./pages/Login.jsx";
+
+// Sistema interno da clínica (guias/planos). Só abre em computadores da rede local.
+const URL_SISTEMA = 'http://192.168.15.200:8000/';
+const DICA_SISTEMA = 'Acesso da equipe — disponível apenas na rede da clínica';
 
 function LayoutPrincipal() {
     const mobileNav = (closeMenu) => (
@@ -20,7 +24,7 @@ function LayoutPrincipal() {
             </ul>
             <div className="header-actions-mobile">
                 <a href="https://wa.me/551935247867" className="agendar-button">Agendar Avaliação</a>
-                <Link to="/login" className='link-sistema' onClick={closeMenu}>Sistema</Link>
+                <a href={URL_SISTEMA} className='link-sistema' title={DICA_SISTEMA} onClick={closeMenu}>Sistema</a>
             </div>
         </>
     );
@@ -38,6 +42,7 @@ function LayoutPrincipal() {
                         </ul>
                     </nav>
                     <div className="header-actions">
+                        <a href={URL_SISTEMA} className="link-sistema" title={DICA_SISTEMA}>Sistema</a>
                         <BotaoRoxo />
                     </div>
                 </>
