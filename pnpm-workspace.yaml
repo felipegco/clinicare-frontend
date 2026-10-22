@@ -1,0 +1,5 @@
+allowBuilds:
+  '@ybouane/liquidglass': false
+  esbuild: true
+patchedDependencies:
+  '@ybouane/liquidglass@1.0.3': patches/@ybouane__liquidglass@1.0.3.patch

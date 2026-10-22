@@ -73,7 +73,7 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-.header-component-wrapper.scrolled .menu-icon {
+.menu-icon.scrolled {
     transition: ease 0.5s;
     top: 45px;
     right: 4rem;

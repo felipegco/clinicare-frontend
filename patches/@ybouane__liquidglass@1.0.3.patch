@@ -1,0 +1,24 @@
+diff --git a/dist/index.js b/dist/index.js
+index 10897f2a4b0027c888468c892c8168c26dcf2076..7163bb35bf684faa95c3f4cbde535967a3262097 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -2345,6 +2345,7 @@ var LiquidGlass = class _LiquidGlass {
+         this._glassCache.delete(el);
+         this.capture.invalidateCache(el);
+         this._glassContentDirty.add(el);
++        this._glassDirty.add(el);
+         changed = true;
+       }
+     }
+diff --git a/src/LiquidGlass.ts b/src/LiquidGlass.ts
+index eb224d2bbde75b937caa5867978e380de8ab4e99..bb50d486be94d2b17cd5c2feba0498d6eedcb647 100644
+--- a/src/LiquidGlass.ts
++++ b/src/LiquidGlass.ts
+@@ -794,6 +794,7 @@ export class LiquidGlass {
+ 				// Only this element's content image needs to be
+ 				// re-captured, not every glass on the page.
+ 				this._glassContentDirty.add(el);
++				this._glassDirty.add(el);
+ 				changed = true;
+ 			}
+ 		}

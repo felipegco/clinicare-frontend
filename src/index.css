@@ -76,3 +76,8 @@ a:hover {
     margin-bottom: 50px;
 }
 
+
+/* container da LiquidGlass: o header de vidro e as seções são filhos diretos */
+.glass-root {
+    position: relative;
+}
