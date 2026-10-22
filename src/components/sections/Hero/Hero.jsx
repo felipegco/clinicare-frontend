@@ -10,7 +10,8 @@ import BotaoRoxo from "../../ui/BotaoRoxo/BotaoRoxo.jsx";
 function Hero(){
 
     const ImageSwiper = () => (
-        <Swiper modules={[Autoplay, EffectFade]} effect={"fade"} loop={true} autoplay={{ delay: 4000, disableOnInteraction: false }} className="hero_swiper">
+        <Swiper modules={[Autoplay, EffectFade]} effect={"fade"} loop={true} autoplay={{ delay: 4000, disableOnInteraction: false }} className="hero_swiper"
+            onSlideChangeTransitionEnd={(swiper) => swiper.el.dispatchEvent(new Event('glass-change', { bubbles: true }))}>
             <SwiperSlide>
                 <img src={heroImage1} alt="Recepção confortável da clínica CliniCare" />
             </SwiperSlide>

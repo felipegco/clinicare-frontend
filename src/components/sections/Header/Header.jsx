@@ -1,11 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { LiquidGlass } from '@ybouane/liquidglass';
 import './Header.css';
 import '../../ui/HeaderEffect.css';
 import logo from '../../../assets/mini-logo.png';
 
+// Configuração do vidro (https://liquid-glass.ybouane.com)
+const glassConfig = (scrolled) => JSON.stringify({
+    // valores do Interactive Playground da LiquidGlass
+    blurAmount: 0.25,
+    refraction: 0.8,
+    chromAberration: 0,
+    edgeHighlight: 0.05,
+    specular: 0,
+    fresnel: 2,
+    distortion: 0,
+    cornerRadius: scrolled ? 40 : 0,
+    zRadius: 40,
+    opacity: 1,
+    saturation: 0,
+    brightness: 0,
+    shadowOpacity: scrolled ? 0.3 : 0,
+    shadowSpread: 10,
+    bevelMode: 0,
+});
+
+// No Safari o html-to-image perde as imagens na primeira captura; a segunda sai certa
+const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Android/.test(navigator.userAgent);
+
 function Header({ children, mobileContent }) {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const glassRef = useRef(null);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -24,21 +49,72 @@ function Header({ children, mobileContent }) {
         };
     }, [menuOpen]);
 
+    // O vidro precisa ser filho direto do root; o root é o container da página
+    useEffect(() => {
+        const glass = glassRef.current;
+        const root = glass.parentElement;
+        let instance = null;
+        let cancelled = false;
+        let recaptureTimer = 0;
+
+        // Conteúdo que muda sozinho (ex.: carrossel) avisa com o evento 'glass-change'
+        const handleChange = (e) => instance?.markChanged(e.target);
+        root.addEventListener('glass-change', handleChange);
+
+        // A LiquidGlass recaptura tudo no resize da janela. No Safari, toda captura
+        // nova (inicial ou após resize real) precisa ser repetida para ter as imagens.
+        const scheduleSafariRecapture = () => {
+            if (!isSafari) return;
+            clearTimeout(recaptureTimer);
+            recaptureTimer = setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
+        };
+        const handleResize = (e) => {
+            if (e.isTrusted) scheduleSafariRecapture();
+        };
+        window.addEventListener('resize', handleResize);
+
+        // A LiquidGlass não percebe a rolagem da página sob o header fixo
+        const handleScroll = () => instance?.markChanged();
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        LiquidGlass.init({ root, glassElements: [glass] })
+            .then((created) => {
+                if (cancelled) {
+                    created.destroy();
+                    return;
+                }
+                instance = created;
+                scheduleSafariRecapture();
+            })
+            .catch((err) => console.error('LiquidGlass:', err));
+
+        return () => {
+            cancelled = true;
+            clearTimeout(recaptureTimer);
+            root.removeEventListener('glass-change', handleChange);
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleResize);
+            instance?.destroy();
+        };
+    }, []);
+
     const toggleMenu = () => setMenuOpen(!menuOpen);
     const closeMenu = () => setMenuOpen(false);
 
     return (
-        <div className={`header-component-wrapper ${scrolled ? 'scrolled' : ''}`}>
-            <div className={`header-effect-wrapper ${scrolled ? 'scrolled' : ''}`}>
-                <div className="header-content-container">
-                    <header className="header-container">
-                        <img src={logo} alt="CliniCare Logo" className="header-logo"/>
-                        {children}
-                    </header>
-                </div>
+        <>
+            <div
+                ref={glassRef}
+                className={`header-effect-wrapper ${scrolled ? 'scrolled' : ''}`}
+                data-config={glassConfig(scrolled)}
+            >
+                <header className="header-container">
+                    <img src={logo} alt="CliniCare Logo" className="header-logo"/>
+                    {children}
+                </header>
             </div>
 
-            <div className={`menu-icon ${menuOpen ? 'active' : ''}`} onClick={toggleMenu}>
+            <div className={`menu-icon ${menuOpen ? 'active' : ''} ${scrolled ? 'scrolled' : ''}`} onClick={toggleMenu}>
                 <div className="menu-icon__line"></div>
                 <div className="menu-icon__line"></div>
                 <div className="menu-icon__line"></div>
@@ -49,6 +125,6 @@ function Header({ children, mobileContent }) {
             <nav className={`mobile-nav ${menuOpen ? 'active' : ''}`}>
                 {mobileContent && mobileContent(closeMenu)}
             </nav>
-        </div>
+        </>
     );
 } export default Header;

@@ -26,7 +26,7 @@ function LayoutPrincipal() {
     );
 
     return (
-        <>
+        <div className="glass-root">
             <Header mobileContent={mobileNav}>
                 <>
                     <nav className="desktop-nav">
@@ -47,7 +47,7 @@ function LayoutPrincipal() {
             <Especialistas />
             <Contato />
             <Footer />
-        </>
+        </div>
     )
 }
 
