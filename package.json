@@ -1,16 +1,15 @@
 {
-  "name": "sistema-agendamento-frontend",
+  "name": "clinicare-frontend",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://fecocco.github.io/gestao-clinica-api-frontend/",
+  "homepage": "https://felipegco.github.io/clinicare-frontend/",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "vite build && gh-pages -d dist"
   },
   "dependencies": {
     "@ybouane/liquidglass": "1.0.3",

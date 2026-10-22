@@ -1,75 +1,88 @@
-# Clinic Management - Frontend
+# CliniCare — Frontend
 
-This is the frontend project for the Clinic Management platform, developed with **React** and **Vite**. The application features a complete landing page with information about services and specialists, as well as a dynamic and comprehensive user authentication system.
+Site da **CliniCare**, clínica odontológica em Rio Claro (SP). Reúne a landing page da clínica (serviços, equipe e contato) e a tela de acesso ao sistema de agendamento.
 
-The Login/Registration system is the core of the application, featuring a multi-step **Stepper** component that intelligently guides the user through the flow of email verification, registration, login, and optional profile completion.
-
-**Link to the GitHub Pages Deployment:** [https://fecocco.github.io/gestao-clinica-api-frontend/](https://fecocco.github.io/gestao-clinica-api-frontend/)
+**Site no ar:** https://felipegco.github.io/clinicare-frontend/
 
 ---
 
-## Features
+## Funcionalidades
 
-* **Complete Landing Page:** Showcasing services, staff, and contact information.
-* **Intelligent Authentication Flow:** A single flow that adapts whether the user needs to log in or register.
-* **Dynamic Stepper Component:** A visual indicator that shows the user's progress during the login (2 steps) or registration (3 steps) flows.
-* **Stepper Navigation:** Allows users to click on completed steps to go back and correct previous information.
-* **Profile Enrichment:** Encourages both new and existing users with incomplete profiles to provide optional data after logging in.
-* **Validation and Feedback:** Integrated error and success messages in the UI for a seamless user experience.
-* **Routing with `react-router-dom`:** Manages navigation between the landing page and the login screen.
+- **Landing page:** apresentação da clínica, serviços, especialistas, contato com mapa e botão de agendamento pelo WhatsApp.
+- **Header de vidro (liquid glass):** o header refrata o conteúdo da página que passa por baixo dele, em todos os navegadores (inclusive Safari), usando a biblioteca [`@ybouane/liquidglass`](https://liquid-glass.ybouane.com).
+- **Carrossel no Hero:** fotos da recepção com transição automática ([Swiper](https://swiperjs.com)).
+- **Login e cadastro em etapas:** um único fluxo que verifica o e-mail e leva o usuário ao login ou ao cadastro, com um stepper clicável para voltar a etapas anteriores e uma etapa opcional para completar o perfil.
 
----
+## Tecnologias
 
-## Tech Stack
+- [React 19](https://react.dev) + [Vite 7](https://vite.dev)
+- [React Router](https://reactrouter.com) (`HashRouter`, compatível com o GitHub Pages)
+- [react-scroll](https://github.com/fisshy/react-scroll) para a navegação suave entre seções
+- [Swiper](https://swiperjs.com)
+- [@ybouane/liquidglass](https://github.com/ybouane/liquidglass) (WebGL)
+- CSS puro, um arquivo por componente
 
-* **React 18**
-* **Vite**
-* **React Router DOM**
-* **JavaScript (ES6+)**
-* **CSS3**
+## Backend
 
----
+A landing page funciona sozinha. Já o **login e o cadastro** dependem da API do projeto rodando localmente em `http://localhost:8080`:
 
-## Crucial Prerequisite: The Backend API
+**Repositório da API:** [felipegco/clinicare-backend](https://github.com/felipegco/clinicare-backend)
 
-This is a **frontend-only** project. For the Login and Registration system to function, it is **essential** that the corresponding backend API is running locally on your machine.
+Siga o README do backend para subir o banco e o servidor. O endereço da API está em `src/pages/Login.jsx` (`API_URL`).
 
-The API is responsible for managing users, validating credentials, and storing data.
+## Como rodar
 
-* **Link to the Backend Repository:** [**gestao-clinica-api**](https://fecocco.github.io/clinicare-frontend/)
+O projeto usa **[pnpm](https://pnpm.io)**. Use pnpm em vez de npm: a LiquidGlass recebe um patch (em `patches/`) que só o pnpm aplica.
 
-Please follow the instructions in the backend's `README.md` to clone, set up the database, and start the server (usually on `http://localhost:8080`).
+```bash
+git clone git@github.com:felipegco/clinicare-frontend.git
+cd clinicare-frontend
+pnpm install
+pnpm dev
+```
 
----
+Abra o endereço que aparecer no terminal (por padrão `http://localhost:5173/clinicare-frontend/`).
 
-## How to Run the Project Locally
+## Scripts
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/FeCocco/gestao-clinica-api-frontend.git
-    ```
+| Comando | O que faz |
+|---|---|
+| `pnpm dev` | Servidor de desenvolvimento com hot reload |
+| `pnpm build` | Gera a versão de produção em `dist/` |
+| `pnpm preview` | Serve o build de produção localmente |
+| `pnpm lint` | Roda o ESLint |
+| `pnpm run deploy` | Gera o build e publica no GitHub Pages |
 
-2.  **Navigate to the project folder:**
-    ```bash
-    cd gestao-clinica-api-frontend
-    ```
+## Deploy
 
-3.  **Install the dependencies:**
-    ```bash
-    npm install
-    ```
+O site é servido pelo GitHub Pages a partir da branch `gh-pages`. **Fazer merge na `main` não publica nada**: depois do merge, rode a partir da `main` atualizada:
 
-4.  **Start the development server:**
-    ```bash
-    npm run dev
-    ```
+```bash
+pnpm run deploy
+```
 
-5.  Open [http://localhost:5173](http://localhost:5173) (or the address shown in your terminal) in your browser.
+Use `pnpm run deploy`, não `pnpm deploy`, que é um comando interno do pnpm com outra função.
 
----
+## Estrutura
 
-## Available Scripts
+```
+src/
+├── App.jsx               # Rotas e montagem da landing page
+├── assets/               # Imagens e logos
+├── components/
+│   ├── sections/         # Header, Hero, Serviços, Especialistas, Contato, Footer
+│   └── ui/               # Componentes reutilizáveis (botão, cards, efeito do header)
+└── pages/
+    └── Login.jsx         # Login e cadastro em etapas
+patches/                  # Correção aplicada pelo pnpm na @ybouane/liquidglass
+```
 
-* `npm run dev`: Starts the development server with Hot Reloading.
-* `npm run build`: Compiles and optimizes the application for production in the `dist` folder.
-* `npm run preview`: Starts a local server to preview the production build (after running `build`).
+## Header de vidro: cuidados
+
+O efeito captura o conteúdo da página e o redesenha com WebGL. Para ele continuar funcionando:
+
+- **Imagens leves:** imagens muito grandes (na casa de MB) não são capturadas no Safari. Exporte as fotos já no tamanho em que aparecem na tela.
+- **Nada de `<img src="">`:** uma imagem com `src` vazio quebra a captura da seção inteira.
+- **Novas seções** precisam ser filhas diretas da `div.glass-root` em `App.jsx`, como as atuais.
+- **Ajustes visuais** (refração, blur, cantos, sombra) ficam no `glassConfig`, em `src/components/sections/Header/Header.jsx`.
+- **Ao atualizar a `@ybouane/liquidglass`**, confira se o patch em `patches/` ainda é necessário e teste no Safari.
