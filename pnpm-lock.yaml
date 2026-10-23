@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  '@ybouane/liquidglass@1.0.3': 60d95b6b07bfb59eb3c02bc66171ca88bec60285d9fe25c234f4f96150c298ca
+  '@ybouane/liquidglass@1.0.3': 378e6a3418b6428ccda23e89da11d541dbea72d0cb90824accc64891ede53d65
 
 importers:
 
@@ -13,7 +13,7 @@ importers:
     dependencies:
       '@ybouane/liquidglass':
         specifier: 1.0.3
-        version: 1.0.3(patch_hash=60d95b6b07bfb59eb3c02bc66171ca88bec60285d9fe25c234f4f96150c298ca)
+        version: 1.0.3(patch_hash=378e6a3418b6428ccda23e89da11d541dbea72d0cb90824accc64891ede53d65)
       pnpm:
         specifier: ^10.28.0
         version: 10.28.0
@@ -1603,7 +1603,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@ybouane/liquidglass@1.0.3(patch_hash=60d95b6b07bfb59eb3c02bc66171ca88bec60285d9fe25c234f4f96150c298ca)': {}
+  '@ybouane/liquidglass@1.0.3(patch_hash=378e6a3418b6428ccda23e89da11d541dbea72d0cb90824accc64891ede53d65)': {}
 
   acorn-jsx@5.3.2(acorn@8.15.0):
     dependencies:
