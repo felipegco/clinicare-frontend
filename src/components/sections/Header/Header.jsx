@@ -24,9 +24,6 @@ const glassConfig = (scrolled) => JSON.stringify({
     bevelMode: 0,
 });
 
-// No Safari o html-to-image perde as imagens na primeira captura; a segunda sai certa
-const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Android/.test(navigator.userAgent);
-
 function Header({ children, mobileContent }) {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -55,23 +52,10 @@ function Header({ children, mobileContent }) {
         const root = glass.parentElement;
         let instance = null;
         let cancelled = false;
-        let recaptureTimer = 0;
 
         // Conteúdo que muda sozinho (ex.: carrossel) avisa com o evento 'glass-change'
         const handleChange = (e) => instance?.markChanged(e.target);
         root.addEventListener('glass-change', handleChange);
-
-        // A LiquidGlass recaptura tudo no resize da janela. No Safari, toda captura
-        // nova (inicial ou após resize real) precisa ser repetida para ter as imagens.
-        const scheduleSafariRecapture = () => {
-            if (!isSafari) return;
-            clearTimeout(recaptureTimer);
-            recaptureTimer = setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
-        };
-        const handleResize = (e) => {
-            if (e.isTrusted) scheduleSafariRecapture();
-        };
-        window.addEventListener('resize', handleResize);
 
         // A LiquidGlass não percebe a rolagem da página sob o header fixo
         const handleScroll = () => instance?.markChanged();
@@ -84,16 +68,13 @@ function Header({ children, mobileContent }) {
                     return;
                 }
                 instance = created;
-                scheduleSafariRecapture();
             })
             .catch((err) => console.error('LiquidGlass:', err));
 
         return () => {
             cancelled = true;
-            clearTimeout(recaptureTimer);
             root.removeEventListener('glass-change', handleChange);
             window.removeEventListener('scroll', handleScroll);
-            window.removeEventListener('resize', handleResize);
             instance?.destroy();
         };
     }, []);

@@ -1,8 +1,57 @@
 diff --git a/dist/index.js b/dist/index.js
-index 10897f2a4b0027c888468c892c8168c26dcf2076..7163bb35bf684faa95c3f4cbde535967a3262097 100644
+index 10897f2a4b0027c888468c892c8168c26dcf2076..ffb1c71d6a22f24de6a09fb4da218ef55b62bc6e 100644
 --- a/dist/index.js
 +++ b/dist/index.js
-@@ -2345,6 +2345,7 @@ var LiquidGlass = class _LiquidGlass {
+@@ -993,6 +993,13 @@ async function buildFontBlocks() {
+   );
+   return embedded;
+ }
++// WebKit (Safari e qualquer navegador no iOS): o html-to-image só embute as
++// imagens a partir da segunda passada, então capturamos duas vezes.
++var IS_WEBKIT = typeof navigator !== "undefined" && /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|Android/.test(navigator.userAgent);
++async function toCanvasReliable(node, options) {
++  if (IS_WEBKIT) await toCanvas(node, options);
++  return toCanvas(node, options);
++}
+ var HtmlCapture = class {
+   constructor(root) {
+     /** Elements with an in-flight html-to-image re-capture (dedupe). */
+@@ -1125,7 +1132,7 @@ var HtmlCapture = class {
+     if (cssW <= 0 || cssH <= 0) return null;
+     const hideSet = hideNodes && hideNodes.length ? new Set(hideNodes) : null;
+     try {
+-      const rendered = await toCanvas(element, {
++      const rendered = await toCanvasReliable(element, {
+         width: cssW,
+         height: cssH,
+         pixelRatio: this.dpr,
+@@ -1168,7 +1175,7 @@ var HtmlCapture = class {
+   async _captureWithHtmlToImage(element, w, h, cssW, cssH) {
+     if (cssW <= 0 || cssH <= 0 || w <= 0 || h <= 0) return;
+     try {
+-      const rendered = await toCanvas(element, {
++      const rendered = await toCanvasReliable(element, {
+         width: cssW,
+         height: cssH,
+         pixelRatio: this.dpr,
+@@ -1842,7 +1849,15 @@ var LiquidGlass = class _LiquidGlass {
+       this._glassCache.clear();
+       this._globalDirty = true;
+     });
+-    this._onResize = this._handleResize.bind(this);
++    // Ignora resize só de altura (barra do Safari no iOS ao rolar): recapturar
++    // tudo nesses casos deixa o vidro sem conteúdo e trava a rolagem.
++    this._lastResizeKey = `${window.innerWidth}x${window.devicePixelRatio || 1}`;
++    this._onResize = () => {
++      const key = `${window.innerWidth}x${window.devicePixelRatio || 1}`;
++      if (key === this._lastResizeKey) return;
++      this._lastResizeKey = key;
++      this._handleResize();
++    };
+     this._onPointerDown = this._handlePointerDown.bind(this);
+     this._onPointerMove = this._handlePointerMove.bind(this);
+     this._onPointerUp = this._handlePointerUp.bind(this);
+@@ -2345,6 +2360,7 @@ var LiquidGlass = class _LiquidGlass {
          this._glassCache.delete(el);
          this.capture.invalidateCache(el);
          this._glassContentDirty.add(el);
@@ -10,11 +59,76 @@ index 10897f2a4b0027c888468c892c8168c26dcf2076..7163bb35bf684faa95c3f4cbde535967
          changed = true;
        }
      }
+diff --git a/src/HtmlCapture.ts b/src/HtmlCapture.ts
+index e964c9da2fd3453f84d7f8a26b1b780d5cc82f50..6c44e9aaeabac3a2646285292f4779ef26d0f252 100644
+--- a/src/HtmlCapture.ts
++++ b/src/HtmlCapture.ts
+@@ -11,6 +11,17 @@
+  */
+ import { toCanvas } from 'html-to-image';
+ 
++// WebKit (Safari and every iOS browser): html-to-image only embeds images
++// reliably from the second pass on, so capture twice there.
++const IS_WEBKIT = typeof navigator !== 'undefined'
++	&& /AppleWebKit/.test(navigator.userAgent)
++	&& !/Chrome|Chromium|Edg|Android/.test(navigator.userAgent);
++
++async function toCanvasReliable(...args: Parameters<typeof toCanvas>): ReturnType<typeof toCanvas> {
++	if (IS_WEBKIT) await toCanvas(...args);
++	return toCanvas(...args);
++}
++
+ interface CacheEntry {
+ 	canvas: HTMLCanvasElement;
+ 	w: number;
+@@ -512,7 +523,7 @@ export class HtmlCapture {
+ 			: null;
+ 
+ 		try {
+-			const rendered = await toCanvas(element, {
++			const rendered = await toCanvasReliable(element, {
+ 				width: cssW,
+ 				height: cssH,
+ 				pixelRatio: this.dpr,
+@@ -571,7 +582,7 @@ export class HtmlCapture {
+ 		// will throw on every subsequent drawImage.
+ 		if (cssW <= 0 || cssH <= 0 || w <= 0 || h <= 0) return;
+ 		try {
+-			const rendered = await toCanvas(element, {
++			const rendered = await toCanvasReliable(element, {
+ 				width: cssW,
+ 				height: cssH,
+ 				pixelRatio: this.dpr,
 diff --git a/src/LiquidGlass.ts b/src/LiquidGlass.ts
-index eb224d2bbde75b937caa5867978e380de8ab4e99..bb50d486be94d2b17cd5c2feba0498d6eedcb647 100644
+index eb224d2bbde75b937caa5867978e380de8ab4e99..12eead884389a9fe5c058005215eab4d842b490a 100644
 --- a/src/LiquidGlass.ts
 +++ b/src/LiquidGlass.ts
-@@ -794,6 +794,7 @@ export class LiquidGlass {
+@@ -166,6 +166,7 @@ export class LiquidGlass {
+ 	};
+ 
+ 	private readonly _onResize: () => void;
++	private _lastResizeKey: string;
+ 	private readonly _onPointerDown: (e: PointerEvent) => void;
+ 	private readonly _onPointerMove: (e: PointerEvent) => void;
+ 	private readonly _onPointerUp: (e: PointerEvent) => void;
+@@ -202,7 +203,15 @@ export class LiquidGlass {
+ 			this._globalDirty = true;
+ 		});
+ 
+-		this._onResize = this._handleResize.bind(this);
++		// Ignore height-only resizes (iOS Safari toolbar while scrolling):
++		// re-capturing everything there blanks the glass and stalls scrolling.
++		this._lastResizeKey = `${window.innerWidth}x${window.devicePixelRatio || 1}`;
++		this._onResize = () => {
++			const key = `${window.innerWidth}x${window.devicePixelRatio || 1}`;
++			if (key === this._lastResizeKey) return;
++			this._lastResizeKey = key;
++			this._handleResize();
++		};
+ 		this._onPointerDown = this._handlePointerDown.bind(this);
+ 		this._onPointerMove = this._handlePointerMove.bind(this);
+ 		this._onPointerUp = this._handlePointerUp.bind(this);
+@@ -794,6 +803,7 @@ export class LiquidGlass {
  				// Only this element's content image needs to be
  				// re-captured, not every glass on the page.
  				this._glassContentDirty.add(el);
